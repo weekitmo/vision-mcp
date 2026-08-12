@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "vision-local": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "vision-mcp"
+      ],
+      "cwd": ".",
+      "env": {
+        "VISION_BASE_URL": "",
+        "VISION_API_KEY": "",
+        "VISION_MODEL": "",
+        "VISION_TIMEOUT": ""
+      }
+    }
+  }
+}

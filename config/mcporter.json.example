@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "vision": {
+      "command": "uv",
+      "args": [
+        "run",
+        "vision-mcp"
+      ],
+      "cwd": "..",
+      "description": "OpenAI-compatible image understanding MCP",
+      "env": {
+        "VISION_BASE_URL": "${VISION_BASE_URL}",
+        "VISION_API_KEY": "${VISION_API_KEY}",
+        "VISION_MODEL": "${VISION_MODEL}",
+        "VISION_TIMEOUT": "${VISION_TIMEOUT:-120}"
+      },
+      "lifecycle": "ephemeral"
+    }
+  },
+  "imports": []
+}
+

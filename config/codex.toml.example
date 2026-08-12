@@ -1,0 +1,15 @@
+[mcp_servers.vision]
+command = "uvx"
+args = [
+  "--from",
+  "git+https://github.com/weekitmo/vision-mcp.git@main",
+  "vision-mcp",
+]
+env_vars = [
+  "VISION_BASE_URL",
+  "VISION_API_KEY",
+  "VISION_MODEL",
+  "VISION_TIMEOUT",
+]
+startup_timeout_sec = 60
+tool_timeout_sec = 180

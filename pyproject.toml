@@ -1,0 +1,78 @@
+[project]
+name = "openai-vision-mcp"
+version = "0.1.0"
+description = "MCP server for image understanding through OpenAI-compatible vision APIs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "openai",
+    "vision",
+    "image-understanding",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "httpx[socks]>=0.28.1,<1",
+    "mcp>=2.0.0,<3",
+]
+
+[project.scripts]
+vision-mcp = "openai_vision_mcp.server:main"
+openai-vision-mcp = "openai_vision_mcp.server:main"
+
+[dependency-groups]
+dev = [
+    "mcp[cli]>=2.0.0,<3",
+    "pyright>=1.1.400",
+    "pytest>=8.4.0",
+    "ruff>=0.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openai_vision_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/.env.example",
+    "/.inspector/mcp.json.example",
+    "/LICENSE",
+    "/README.md",
+    "/config/codex.toml.example",
+    "/config/grok.toml.example",
+    "/config/mcporter.json.example",
+    "/previews/preview.png",
+    "/pyproject.toml",
+    "/scripts",
+    "/src",
+]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
