@@ -331,11 +331,20 @@ args = [
 enabled = true
 startup_timeout_sec = 60
 tool_timeout_sec = 180
+
+[mcp_servers.vision.env]
+VISION_BASE_URL = "https://api.openai.com/v1"
+VISION_API_KEY = "your-api-key"
+VISION_MODEL = "your-vision-model"
+VISION_TIMEOUT = "120"
 ```
 
-Export the `VISION_*` variables before starting Grok. The stdio server inherits Grok's
-process environment, so real API keys do not need to be stored in the TOML file. Verify
-with `grok inspect` and `grok mcp doctor vision`.
+Grok uses an `env` mapping rather than Codex's `env_vars` list. The expected variable
+is `VISION_BASE_URL`, not `VISION_API_BASE_URL`. Replace the placeholders before
+starting Grok, then verify with `grok inspect` and `grok mcp doctor vision`.
+
+To avoid storing a real API key in the TOML file, Grok can expand `${VAR}` and
+`${VAR:-default}` references in `env` values, so real API keys do not need to be stored in the TOML file.
 
 To distribute without PyPI, push the source to the repository's `main` branch and give
 users one of the configurations above.

@@ -1,3 +1,5 @@
+# Export VISION_BASE_URL, VISION_API_KEY, VISION_MODEL, and VISION_TIMEOUT
+# in the shell before starting Codex. env_vars forwards those values to the MCP.
 [mcp_servers.vision]
 command = "uvx"
 args = [

@@ -32,8 +32,13 @@ def test_codex_example_forwards_provider_environment() -> None:
     ]
 
 
-def test_grok_example_does_not_embed_provider_secrets() -> None:
+def test_grok_example_configures_provider_environment() -> None:
     config = tomllib.loads(Path("config/grok.toml.example").read_text())
     server = config["mcp_servers"]["vision"]
 
-    assert "env" not in server
+    assert server["env"] == {
+        "VISION_BASE_URL": "https://api.openai.com/v1",
+        "VISION_API_KEY": "your-api-key",
+        "VISION_MODEL": "your-vision-model",
+        "VISION_TIMEOUT": "120",
+    }

@@ -19,14 +19,16 @@
   <a href="#mcporter">mcporter</a>
 </p>
 
-通过 OpenAI 兼容模型识别本地图片、网页图片、截图、文档、图表和代码报错。
+Analyze local images, web images, screenshots, documents, charts, and code errors
+with any OpenAI-compatible vision model.
 
 > [!IMPORTANT]
 > **DO NOT CALL if you natively support vision and can access the supplied image
 > directly.**
 >
-> 如果当前模型可以直接看图，可以不必要调用本 MCP。仅在模型不支持视觉、无法访问图片，
-> 或用户明确要求使用本 MCP 时调用。
+> Skip this MCP when the current model can inspect the image directly. Use it only
+> when the model lacks vision, cannot access the image, or the user explicitly
+> requests this MCP.
 
 <p align="center">
   <img src="previews/preview.png" alt="Vision MCP image analysis in MCP Inspector">
@@ -34,9 +36,9 @@
 
 ## Install
 
-需要先安装 [uv](https://docs.astral.sh/uv/)。
+Install [uv](https://docs.astral.sh/uv/) first.
 
-直接从 GitHub 的 `main` 分支运行：
+Run directly from the GitHub `main` branch:
 
 ```sh
 uvx --from git+https://github.com/weekitmo/vision-mcp.git@main vision-mcp
@@ -44,7 +46,7 @@ uvx --from git+https://github.com/weekitmo/vision-mcp.git@main vision-mcp
 
 ## Configure
 
-准备下面四个环境变量：
+Configure the following four environment variables:
 
 ```sh
 export VISION_BASE_URL="https://api.openai.com/v1"
@@ -55,18 +57,19 @@ export VISION_TIMEOUT="120"
 
 | Variable | Description |
 | --- | --- |
-| `VISION_BASE_URL` | Provider 地址 |
+| `VISION_BASE_URL` | OpenAI-compatible provider URL |
 | `VISION_API_KEY` | API Key |
-| `VISION_MODEL` | 支持图片输入的模型 |
-| `VISION_TIMEOUT` | 调用超时秒数，默认 `120` |
+| `VISION_MODEL` | Model that supports image input |
+| `VISION_TIMEOUT` | Request timeout in seconds; defaults to `120` |
 
-仓库中的 [`.env.example`](.env.example) 可以作为配置模板。不要提交真实 API Key。
+Use [`.env.example`](.env.example) as a configuration template. Never commit a
+real API key.
 
 ## MCP Clients
 
 ### JSON
 
-适用于支持标准 JSON MCP 配置的客户端：
+For clients that support the standard JSON MCP configuration format:
 
 ```json
 {
@@ -91,7 +94,8 @@ export VISION_TIMEOUT="120"
 
 ### Codex
 
-添加到 `~/.codex/config.toml` 或可信项目中的 `.codex/config.toml`：
+Add the following to `~/.codex/config.toml` or `.codex/config.toml` in a
+trusted project:
 
 ```toml
 [mcp_servers.vision]
@@ -111,17 +115,32 @@ startup_timeout_sec = 60
 tool_timeout_sec = 180
 ```
 
-先导出 `VISION_*` 环境变量，再启动 Codex：
+The `env_vars` list declares which variables Codex should forward to Vision MCP;
+it does not contain their values. Configure the upstream vision provider in the
+same terminal before starting Codex:
+
+```sh
+export VISION_BASE_URL="https://api.openai.com/v1"
+export VISION_API_KEY="your-api-key"
+export VISION_MODEL="your-vision-model"
+export VISION_TIMEOUT="120"
+```
+
+These settings configure the provider used by Vision MCP. They are independent
+of the account or API key used by Codex itself. After exporting the variables,
+start Codex or verify that the MCP server is registered:
 
 ```sh
 codex mcp list
 ```
 
-完整示例见 [`config/codex.toml.example`](config/codex.toml.example)。
+See [`config/codex.toml.example`](config/codex.toml.example) for the complete
+example.
 
 ### Grok
 
-添加到 `~/.grok/config.toml` 或项目中的 `.grok/config.toml`：
+Add the following to `~/.grok/config.toml` or the project's
+`.grok/config.toml`:
 
 ```toml
 [mcp_servers.vision]
@@ -134,63 +153,88 @@ args = [
 enabled = true
 startup_timeout_sec = 60
 tool_timeout_sec = 180
+
+[mcp_servers.vision.env]
+VISION_BASE_URL = "https://api.openai.com/v1"
+VISION_API_KEY = "your-api-key"
+VISION_MODEL = "your-vision-model"
+VISION_TIMEOUT = "120"
 ```
 
-先导出 `VISION_*` 环境变量，再启动 Grok：
+Grok does not use Codex's `env_vars` list. It uses
+`[mcp_servers.vision.env]` to configure the MCP process environment directly.
+The expected variable name is `VISION_BASE_URL`, not `VISION_API_BASE_URL`.
+
+To avoid storing the API key directly in TOML, reference environment variables
+that are available when Grok starts:
+
+```toml
+[mcp_servers.vision.env]
+VISION_BASE_URL = "${VISION_BASE_URL}"
+VISION_API_KEY = "${VISION_API_KEY}"
+VISION_MODEL = "${VISION_MODEL}"
+VISION_TIMEOUT = "${VISION_TIMEOUT:-120}"
+```
+
+These settings configure the provider used by Vision MCP. They are independent
+of the account or API key used by Grok itself. Do not commit a project-level
+`.grok/config.toml` that contains a real API key. Verify the configuration with:
 
 ```sh
 grok mcp list
 ```
 
-完整示例见 [`config/grok.toml.example`](config/grok.toml.example)。
+See [`config/grok.toml.example`](config/grok.toml.example) for the complete
+example.
 
 ## Inspector
 
-一条命令启动 MCP Inspector：
+Start MCP Inspector with:
 
 ```sh
 ./scripts/test-ui.sh
 ```
 
-脚本固定使用 `@modelcontextprotocol/inspector@2.1.0`。
+The script pins `@modelcontextprotocol/inspector@2.1.0`.
 
-在 Inspector 中：
+In Inspector:
 
-1. 打开 `vision-local`。
-2. 在 `Environment Variables` 中填写四个 `VISION_*` 配置。
-3. 连接 Server。
-4. 打开 `Tools`。
-5. 选择 `analyze_image` 或 `understand_image`。
-6. 填写图片路径和问题，运行工具。
+1. Open `vision-local`.
+2. Enter the four `VISION_*` settings under `Environment Variables`.
+3. Connect to the server.
+4. Open `Tools`.
+5. Select `analyze_image` or `understand_image`.
+6. Enter the image path and prompt, then run the tool.
 
-Inspector 的本地配置保存在 `.inspector/mcp.json`，该文件不会被 Git 提交。
+Inspector stores its local configuration in `.inspector/mcp.json`, which is
+excluded from Git.
 
 ## mcporter
 
-初始化项目配置：
+Initialize the project configuration:
 
 ```sh
 ./scripts/setup-mcporter.sh
 ```
 
-查看工具：
+Inspect the available tools:
 
 ```sh
 mcporter list vision --schema --all-parameters
 ```
 
-识别一张图片：
+Analyze one image:
 
 ```sh
 mcporter call vision.analyze_image \
   image=/absolute/path/to/screenshot.png \
-  prompt="提取图片中的所有文字" \
+  prompt="Extract all text from this image" \
   mode=ocr \
   detail=high \
   --timeout 120000
 ```
 
-比较多张图片：
+Compare multiple images:
 
 ```sh
 mcporter call vision.understand_image \
@@ -199,14 +243,14 @@ mcporter call vision.understand_image \
       "/absolute/path/before.png",
       "/absolute/path/after.png"
     ],
-    "prompt": "比较两张图片的差异",
+    "prompt": "Compare the differences between these images",
     "mode": "compare"
   }' \
   --timeout 120000 \
   --output json
 ```
 
-查看内置使用说明：
+Read the built-in documentation resources:
 
 ```sh
 mcporter resource vision
@@ -218,40 +262,42 @@ mcporter resource vision vision://docs/tools
 
 ### `analyze_image`
 
-用于识别单张图片，适合 Inspector、mcporter 和命令行调用。
+Analyze a single image. This tool is suitable for Inspector, mcporter, and
+command-line calls.
 
 ```text
-image       本地路径、HTTP(S) URL 或 data URL
-prompt      希望模型回答的问题
-mode        识别模式
-ascii_mode  是否使用 ASCII 表达布局
-detail      图片解析精度
-max_tokens  最大输出长度
+image       Local path, HTTP(S) URL, or data URL
+prompt      Question or instruction for the model
+mode        Analysis mode
+ascii_mode  Whether to represent layouts with ASCII
+detail      Image input detail level
+max_tokens  Maximum output length
 ```
 
 ### `understand_image`
 
-用于多图识别、图片比较，以及需要兼容不同图片参数格式的客户端。
+Analyze or compare multiple images. This tool also supports clients that use
+different image argument formats.
 
 ```text
-images      图片列表
-prompt      希望模型回答的问题
-mode        识别模式
-ascii_mode  是否使用 ASCII 表达布局
-detail      图片解析精度
-max_tokens  最大输出长度
+images      List of images
+prompt      Question or instruction for the model
+mode        Analysis mode
+ascii_mode  Whether to represent layouts with ASCII
+detail      Image input detail level
+max_tokens  Maximum output length
 ```
 
-可用模式：
+Available modes:
 
 `auto` · `describe` · `ocr` · `document` · `ui` · `chart` · `compare` ·
 `spatial` · `code`
 
-支持 PNG、JPEG、WEBP 和 GIF。单次最多识别 10 张图片。
+PNG, JPEG, WEBP, and GIF are supported. Each call accepts up to 10 images.
 
 ## From Source
 
-需要修改或调试时：
+For development or debugging:
 
 ```sh
 git clone https://github.com/weekitmo/vision-mcp.git
@@ -260,7 +306,7 @@ uv sync --frozen
 uv run vision-mcp
 ```
 
-在 MCP 客户端中从源码启动：
+Run from source in an MCP client:
 
 ```json
 {
