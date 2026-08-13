@@ -19,7 +19,36 @@ reviews:
   in_progress_fortune: false
   enable_prompt_for_ai_agents: false
   review_details: false
+  review_status: false
+  assess_linked_issues: false
   collapse_walkthrough: true
+
+  slop_detection:
+    enabled: false
+
+  pre_merge_checks:
+    docstrings:
+      mode: off
+    title:
+      mode: off
+    description:
+      mode: off
+    issue_assessment:
+      mode: off
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+    simplify:
+      enabled: false
+    autofix:
+      enabled: false
+    fix_ci:
+      enabled: false
+    resolve_merge_conflict:
+      enabled: false
 
   auto_review:
     enabled: true
