@@ -11,7 +11,6 @@
   <a href="https://github.com/weekitmo/vision-mcp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/weekitmo/vision-mcp?style=flat&colorA=222222&colorB=58A6FF" alt="License"></a>
   <a href="https://m8ven.ai/mcp/weekitmo-vision-mcp-1ezfp7"><img src="https://m8ven.ai/badge/mcp/weekitmo-vision-mcp-1ezfp7" alt="M8ven Verified"></a>
 </p>
-<!-- m8ven-verify: 49a095dc62627a67d49d149c5184dd13 -->
 
 <p align="center">
   <a href="#install">Install</a> ·
