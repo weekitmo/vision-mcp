@@ -2,17 +2,21 @@ from __future__ import annotations
 
 import asyncio
 import json
+import platform
+import secrets
 from typing import Any
 
 import httpx
 import pytest
 
 from openai_vision_mcp.client import (
+    USER_AGENT,
     APIStyle,
     VisionAPIError,
     VisionClient,
     build_chat_completions_payload,
     build_responses_payload,
+    build_user_agent,
     parse_chat_completions_text,
     parse_responses_text,
     resolve_endpoints,
@@ -123,6 +127,62 @@ def test_client_falls_back_from_responses_to_chat() -> None:
     assert [path for path, _ in requests] == ["/v1/responses", "/v1/chat/completions"]
     assert requests[0][1]["input"][0]["content"][1]["type"] == "input_image"
     assert requests[1][1]["messages"][1]["content"][1]["type"] == "image_url"
+
+
+def test_client_uses_codex_user_agent() -> None:
+    seen_user_agents: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_user_agents.append(request.headers["user-agent"])
+        return httpx.Response(200, json={"output_text": "seen"})
+
+    client = VisionClient(
+        Settings("https://example.com/v1/responses", "key", "model", 10),
+        transport=httpx.MockTransport(handler),
+    )
+    asyncio.run(
+        client.analyze(
+            images=["https://example.com/image.png"],
+            prompt="inspect",
+            system_prompt="system",
+            detail="auto",
+            max_tokens=100,
+        )
+    )
+
+    assert seen_user_agents == [USER_AGENT]
+    assert not USER_AGENT.startswith("python-httpx/")
+
+
+def test_user_agent_uses_current_macos_version_and_architecture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def choose_kitty(choices: tuple[str, ...]) -> str:
+        assert choices == ("kitty", "ghostty")
+        return "kitty"
+
+    monkeypatch.setattr(platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(platform, "mac_ver", lambda: ("26.4", ("", "", ""), ""))
+    monkeypatch.setattr(platform, "machine", lambda: "x86_64")
+    monkeypatch.setattr(secrets, "choice", choose_kitty)
+
+    assert build_user_agent() == (
+        "codex-tui/0.147.0 (Mac OS 26.4.0; x86_64) "
+        "kitty (codex-tui; 0.147.0)"
+    )
+
+
+def test_user_agent_randomizes_terminal(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen_choices: list[tuple[str, ...]] = []
+
+    def choose_terminal(choices: tuple[str, ...]) -> str:
+        seen_choices.append(choices)
+        return "ghostty"
+
+    monkeypatch.setattr(secrets, "choice", choose_terminal)
+
+    assert build_user_agent().endswith("ghostty (codex-tui; 0.147.0)")
+    assert seen_choices == [("kitty", "ghostty")]
 
 
 def test_client_does_not_hide_model_errors_with_fallback() -> None:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import platform
+import secrets
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, cast
@@ -11,6 +13,35 @@ import httpx
 from openai_vision_mcp.config import Settings
 
 ImageDetail = Literal["auto", "low", "high", "original"]
+CODEX_TUI_VERSION = "0.147.0"
+TERMINALS = ("kitty", "ghostty")
+
+
+def _normalize_macos_version(version: str) -> str:
+    components = version.split(".")
+    if not 1 <= len(components) <= 3 or not all(component.isdigit() for component in components):
+        return version
+    components.extend("0" for _ in range(max(0, 3 - len(components))))
+    return ".".join(components)
+
+
+def build_user_agent() -> str:
+    system = platform.system()
+    architecture = platform.machine() or "unknown"
+    terminal = secrets.choice(TERMINALS)
+    if system == "Darwin":
+        product_version = _normalize_macos_version(platform.mac_ver()[0] or platform.release())
+        operating_system = f"Mac OS {product_version}"
+    else:
+        operating_system = f"{system or 'Unknown OS'} {platform.release()}".strip()
+
+    return (
+        f"codex-tui/{CODEX_TUI_VERSION} ({operating_system}; {architecture}) "
+        f"{terminal} (codex-tui; {CODEX_TUI_VERSION})"
+    )
+
+
+USER_AGENT = build_user_agent()
 
 
 class APIStyle(str, Enum):
@@ -206,6 +237,7 @@ class VisionClient:
             "Authorization": f"Bearer {self.settings.api_key}",
             "api-key": self.settings.api_key,
             "Content-Type": "application/json",
+            "User-Agent": USER_AGENT,
         }
 
         try:
