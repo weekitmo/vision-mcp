@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: zh-CN
+
+tone_instructions: >-
+  简洁直接，不复述 PR，不使用赞美性或泛化措辞。没有明确、可复现且可操作的问题时保持沉默。
+
+reviews:
+  profile: quiet
+
+  high_level_summary: false
+  changed_files_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  in_progress_fortune: false
+  enable_prompt_for_ai_agents: false
+  review_details: false
+  collapse_walkthrough: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: false
+    ignore_title_keywords:
+      - WIP
+      - DO NOT REVIEW
+
+  path_filters:
+    - "!dist/**"
+    - "!uv.lock"
+    - "!previews/**"
+
+  path_instructions:
+    - path: "**/*"
+      instructions: |
+        保持高信噪比。只有改动可能导致以下问题时才发布行级评论：
+        - 明确的功能错误或行为回归
+        - 安全、隐私或密钥泄露
+        - MCP 或 OpenAI-compatible API 兼容性问题
+        - 资源泄露、超时或错误处理缺陷
+        - 对具体行为变更缺少必要的回归测试
+
+        不要评论：
+        - 不影响正确性的命名、格式、文档字符串或个人风格偏好
+        - 没有具体故障场景的假设性问题
+        - 仅为了更优雅而提出的重构或抽象
+        - 已由 Ruff、Pyright 或 Pytest 覆盖的问题
+        - 与当前改动无关的既有代码
+        - 已在其他评论中指出的同一根本问题
+
+        每条评论必须说明具体故障场景、受影响的实际行为和最小修复方案。
+        如果置信度较低或不存在可操作缺陷，请保持沉默。
+
+    - path: "src/**/*.py"
+      instructions: |
+        重点检查异步 HTTP 请求、超时、Provider endpoint fallback、响应解析、
+        图片输入验证、敏感信息泄露，以及 MCP 工具 schema 的向后兼容性。
+
+    - path: "tests/**/*.py"
+      instructions: |
+        不要要求穷举测试或测试实现细节。只有改动增加了明确行为分支，
+        且缺少防止该分支回归的测试时才评论。
+
+    - path: "**/*.md"
+      instructions: |
+        只检查文档是否与实际代码、命令或配置不一致。
+        不要评论措辞、语气或主观写作风格。
+
+  tools:
+    markdownlint:
+      enabled: false
+    languagetool:
+      enabled: false
+
+knowledge_base:
+  web_search:
+    enabled: false
+  learnings:
+    scope: local
