@@ -139,6 +139,41 @@ codex mcp list
 See [`config/codex.toml.example`](config/codex.toml.example) for the complete
 example.
 
+### DeepSeek Harness
+
+Add the following patch entry to
+`$HOME/.dsh/profiles/web/cordis.patch.yml`:
+
+```yaml
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+
+# Vision MCP server (stdio). Exposes tools as mcp__vision__*.
+# Image understanding / OCR via an OpenAI-compatible vision Chat Completions API.
+# docs: https://github.com/weekitmo/vision-mcp
+- insert:
+    - id: mcp-vision
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: vision
+        transport: stdio
+        command: uvx
+        args:
+          - '--from'
+          - 'git+https://github.com/weekitmo/vision-mcp.git@main'
+          - vision-mcp
+        env:
+          VISION_BASE_URL: 'https://api.openai.com/v1'
+          VISION_API_KEY: !!js process.env.VISION_API_KEY
+          VISION_MODEL: !!js process.env.VISION_MODEL
+          VISION_TIMEOUT: '120'
+```
+
+Export `VISION_API_KEY` and `VISION_MODEL` before starting DeepSeek Harness.
+Change `VISION_BASE_URL` if the vision model is hosted by another
+OpenAI-compatible provider.
+
 ### Grok
 
 Add the following to `~/.grok/config.toml` or the project's
